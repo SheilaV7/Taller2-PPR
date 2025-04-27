@@ -19,6 +19,7 @@ array[1..num_clientes, 1..num_dias] of int: demanda_minima =
 % Variables
 array[1..num_plantas, 1..num_dias] of var int: produccion_diaria;
 array[1..num_clientes, 1..num_dias] of var int: energia_entregada;
+array[1..num_clientes, 1..num_dias] of var bool: cumple_demanda_total;
 
 % Restricciones
 
@@ -40,6 +41,16 @@ constraint forall(p in 1..num_plantas, d in 1..num_dias-1) (
     produccion_diaria[p,d] > (porcentaje_regimen_alto[p] * capacidad_maxima[p]) div 100 /\
     produccion_diaria[p,d+1] > (porcentaje_regimen_alto[p] * capacidad_maxima[p]) div 100
 ));
+
+% Relación entre la demanda total y la demanda diaria y la energía entregada
+constraint forall(c in 1..num_clientes, d in 1..num_dias)(
+  (cumple_demanda_total[c,d] = true <-> energia_entregada[c,d] = demanda_diaria[c,d]));
+ 
+% Darle prioridad a los cliente respecto al pago
+constraint forall(c1, c2 in 1..num_clientes where pago_por_mw[c1] > pago_por_mw[c2])(
+  sum(d in 1..num_dias)(cumple_demanda_total[c1,d]) >= 
+  sum(d in 1..num_dias)(cumple_demanda_total[c2,d])
+);
 
 
 % Restricciones redundantes
@@ -66,25 +77,17 @@ constraint forall(p in 1..num_plantas-1)(
 var int: ganancia_neta = 
   sum(c in 1..num_clientes, d in 1..num_dias)(energia_entregada[c,d] * pago_por_mw[c]) -
   sum(p in 1..num_plantas, d in 1..num_dias)(produccion_diaria[p,d] * coste_produccion[p]);
+
   
 % Solo valores positivos
 constraint ganancia_neta >= 0;
 
-% solve :: seq_search([
-%   int_search([energia_entregada[c,d] | c in 1..num_clientes, d in 1..num_dias], first_fail, indomain_max, complete),
-%   int_search([produccion_diaria[p,d] | p in 1..num_plantas, d in 1..num_dias], first_fail, indomain_max, complete),
-% ]) maximize ganancia_neta;
-
 % Mejor estrategia de búsqueda
 solve :: seq_search([
+  bool_search([cumple_demanda_total[c,d] | c in 1..num_clientes, d in 1..num_dias], input_order, indomain_max, complete),
   int_search([energia_entregada[c,d] | c in 1..num_clientes, d in 1..num_dias], first_fail, indomain_split, complete),
   int_search([produccion_diaria[p,d] | p in 1..num_plantas, d in 1..num_dias], first_fail, indomain_split, complete),
 ]) maximize ganancia_neta;
-
-% solve :: seq_search([
-%   int_search([energia_entregada[c,d] | c in 1..num_clientes, d in 1..num_dias], dom_w_deg, indomain_split, complete),
-%   int_search([produccion_diaria[p,d] | p in 1..num_plantas, d in 1..num_dias], dom_w_deg, indomain_split, complete),
-% ]) maximize ganancia_neta;
 
 % Salida
 output ["Ganancia neta: \(ganancia_neta)\n"] ++
