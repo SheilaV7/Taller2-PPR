@@ -81,6 +81,9 @@ constraint forall(d in 1..num_dias)(
   sum(p in 1..num_plantas)(produccion_diaria[p,d]) <= sum(c in 1..num_clientes)(demanda_diaria[c,d])
 );
 
+% En caso de las plantas sean tengan igual costo y capacidad (Descartada) 
+% constraint forall(p in 1..num_plantas - 1, d in 1..num_dias)(produccion_diaria[p, d] ≤ produccion_diaria[p + 1, d]);
+
 
 % Objetivo
 var int: ganancia_neta = 
@@ -97,17 +100,17 @@ constraint ganancia_neta >= 0;
 %   int_search([produccion_diaria[p,d] | p in 1..num_plantas, d in 1..num_dias], first_fail, indomain_split, complete),
 % ]) maximize ganancia_neta;
 
-% solve :: seq_search([
-%   bool_search([cumple_demanda_total[c,d] | c in 1..num_clientes, d in 1..num_dias], input_order, indomain_max, complete),
-%   int_search([energia_entregada[c,d] | c in 1..num_clientes, d in 1..num_dias], dom_w_deg, indomain_split, complete),
-%   int_search([produccion_diaria[p,d] | p in 1..num_plantas, d in 1..num_dias], dom_w_deg, indomain_split, complete),
-% ]) maximize ganancia_neta;
-
 solve :: seq_search([
   bool_search([cumple_demanda_total[c,d] | c in 1..num_clientes, d in 1..num_dias], input_order, indomain_max, complete),
-  int_search([energia_entregada[c,d] | c in 1..num_clientes, d in 1..num_dias], dom_w_deg, indomain, complete),
-  int_search([produccion_diaria[p,d] | p in 1..num_plantas, d in 1..num_dias], dom_w_deg, indomain, complete),
+  int_search([energia_entregada[c,d] | c in 1..num_clientes, d in 1..num_dias], first_fail, indomain_split, complete),
+  int_search([produccion_diaria[p,d] | p in 1..num_plantas, d in 1..num_dias], first_fail, indomain_split, complete),
 ]) maximize ganancia_neta;
+
+% solve :: seq_search([
+%   bool_search([cumple_demanda_total[c,d] | c in 1..num_clientes, d in 1..num_dias], input_order, indomain_max, complete),
+%   int_search([energia_entregada[c,d] | c in 1..num_clientes, d in 1..num_dias], dom_w_deg, indomain, complete),
+%   int_search([produccion_diaria[p,d] | p in 1..num_plantas, d in 1..num_dias], dom_w_deg, indomain, complete),
+% ]) maximize ganancia_neta;
 
 % Salida
 output ["Ganancia neta: \(ganancia_neta)\n"] ++
