@@ -1,0 +1,17 @@
+num_plantas = 3;
+num_dias = 5;
+num_clientes = 4;
+
+coste_produccion = [3,5,8];
+capacidad_maxima = [120,80,60];
+demanda_diaria = array2d(1..4, 1..5, [
+   50, 60, 55, 65, 70,   % cliente 1
+   40, 30, 45, 50, 55,   % cliente 2
+   20, 25, 30, 35, 40,   % cliente 3
+   10, 15, 20, 25, 30    % cliente 4
+]);
+
+porcentaje_minimo = 50;
+pago_por_mw = [12,15,10,8];
+porcentaje_regimen_alto = [70,75,80];
+max_dias_regimen_alto = [2,2,1];

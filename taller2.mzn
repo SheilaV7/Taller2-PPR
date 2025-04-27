@@ -81,12 +81,6 @@ constraint forall(d in 1..num_dias)(
   sum(p in 1..num_plantas)(produccion_diaria[p,d]) <= sum(c in 1..num_clientes)(demanda_diaria[c,d])
 );
 
-% Canalización directa entre energía entregada y cumple_demanda_total
-constraint forall(c in 1..num_clientes, d in 1..num_dias)(
-  energia_entregada[c,d] = demanda_minima[c,d] + 
-  bool2int(cumple_demanda_total[c,d]) * (demanda_diaria[c,d] - demanda_minima[c,d])
-);
-
 
 % Objetivo
 var int: ganancia_neta = 
@@ -97,10 +91,22 @@ var int: ganancia_neta =
 % Solo valores positivos
 constraint ganancia_neta >= 0;
 
+% solve :: seq_search([
+%   bool_search([cumple_demanda_total[c,d] | c in 1..num_clientes, d in 1..num_dias], input_order, indomain_max, complete),
+%   int_search([energia_entregada[c,d] | c in 1..num_clientes, d in 1..num_dias], first_fail, indomain_split, complete),
+%   int_search([produccion_diaria[p,d] | p in 1..num_plantas, d in 1..num_dias], first_fail, indomain_split, complete),
+% ]) maximize ganancia_neta;
+
+% solve :: seq_search([
+%   bool_search([cumple_demanda_total[c,d] | c in 1..num_clientes, d in 1..num_dias], input_order, indomain_max, complete),
+%   int_search([energia_entregada[c,d] | c in 1..num_clientes, d in 1..num_dias], dom_w_deg, indomain_split, complete),
+%   int_search([produccion_diaria[p,d] | p in 1..num_plantas, d in 1..num_dias], dom_w_deg, indomain_split, complete),
+% ]) maximize ganancia_neta;
+
 solve :: seq_search([
   bool_search([cumple_demanda_total[c,d] | c in 1..num_clientes, d in 1..num_dias], input_order, indomain_max, complete),
-  int_search([energia_entregada[c,d] | c in 1..num_clientes, d in 1..num_dias], first_fail, indomain_split, complete),
-  int_search([produccion_diaria[p,d] | p in 1..num_plantas, d in 1..num_dias], first_fail, indomain_split, complete),
+  int_search([energia_entregada[c,d] | c in 1..num_clientes, d in 1..num_dias], dom_w_deg, indomain, complete),
+  int_search([produccion_diaria[p,d] | p in 1..num_plantas, d in 1..num_dias], dom_w_deg, indomain, complete),
 ]) maximize ganancia_neta;
 
 % Salida
