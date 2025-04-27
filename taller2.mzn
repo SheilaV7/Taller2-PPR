@@ -1,3 +1,5 @@
+include "globals.mzn";
+
 % Parámetros
 int: num_plantas;
 int: num_dias;
@@ -36,13 +38,12 @@ constraint forall(d in 1..num_dias) (
   sum(p in 1..num_plantas)(produccion_diaria[p,d]) = sum(c in 1..num_clientes)(energia_entregada[c,d]));
 
 % Restricción de régimen alto
-constraint forall(p in 1..num_plantas where max_dias_regimen_alto[p] > 0) (
-  forall(d in 1..num_dias - max_dias_regimen_alto[p] + 1) (
-    sum(i in 0..max_dias_regimen_alto[p]-1) (
-      produccion_diaria[p, d+i] > (porcentaje_regimen_alto[p] * capacidad_maxima[p]) div 100
-    ) < max_dias_regimen_alto[p]
-  )
-);
+constraint forall(p in 1..num_plantas where max_dias_regimen_alto[p] > 0)(
+  forall(d in 1..num_dias - max_dias_regimen_alto[p])(
+    sum(i in 0..max_dias_regimen_alto[p])(
+      bool2int(produccion_diaria[p,d+i] > (porcentaje_regimen_alto[p] * capacidad_maxima[p]) div 100)
+    ) <= max_dias_regimen_alto[p]
+ ));
 
 % Relación entre la demanda total, la demanda diaria y la energía entregada
 constraint forall(c in 1..num_clientes, d in 1..num_dias)(
@@ -52,8 +53,8 @@ constraint forall(c in 1..num_clientes, d in 1..num_dias)(
 constraint forall(c1, c2 in 1..num_clientes where pago_por_mw[c1] > pago_por_mw[c2])(
   sum(d in 1..num_dias)(cumple_demanda_total[c1,d]) >= 
   sum(d in 1..num_dias)(cumple_demanda_total[c2,d]));
-
-
+  
+  
 % Restricciones redundantes
 constraint 
   sum(c in 1..num_clientes, d in 1..num_dias)(energia_entregada[c,d]) >= 
@@ -66,6 +67,26 @@ constraint forall(c in 1..num_clientes)(
 constraint forall(d in 1..num_dias)(
   sum(p in 1..num_plantas)(produccion_diaria[p,d]) >= sum(c in 1..num_clientes)(demanda_minima[c,d])
 /\ sum(p in 1..num_plantas)(produccion_diaria[p,d]) <= sum(c in 1..num_clientes)(demanda_diaria[c,d]));
+
+
+% Restricciones de prueba 
+
+% Darle prioridad a los clientes respecto a la demanda total diaria
+constraint forall(c1, c2 in 1..num_clientes where pago_por_mw[c1] > pago_por_mw[c2], d in 1..num_dias) (
+  cumple_demanda_total[c2,d] -> cumple_demanda_total[c1,d]);
+
+% Cota superior e inferior para la producción total
+constraint forall(d in 1..num_dias)(
+  sum(p in 1..num_plantas)(produccion_diaria[p,d]) >= sum(c in 1..num_clientes)(demanda_minima[c,d]) /\
+  sum(p in 1..num_plantas)(produccion_diaria[p,d]) <= sum(c in 1..num_clientes)(demanda_diaria[c,d])
+);
+
+% Canalización directa entre energía entregada y cumple_demanda_total
+constraint forall(c in 1..num_clientes, d in 1..num_dias)(
+  energia_entregada[c,d] = demanda_minima[c,d] + 
+  bool2int(cumple_demanda_total[c,d]) * (demanda_diaria[c,d] - demanda_minima[c,d])
+);
+
 
 % Objetivo
 var int: ganancia_neta = 

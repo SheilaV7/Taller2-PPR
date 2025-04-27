@@ -2,7 +2,7 @@ num_plantas = 3;
 num_dias = 4;
 num_clientes = 3;
 
-coste_produccion = [10, 15, 20]; % Plantas: Nuclear, Hidroeléctrica, Térmica
+coste_produccion = [30, 15, 20]; % Plantas: Nuclear, Hidroeléctrica, Térmica
 capacidad_maxima = [1000, 300, 500];
 
 demanda_diaria = array2d(1..num_clientes, 1..num_dias, [|

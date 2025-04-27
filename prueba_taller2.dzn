@@ -1,21 +1,16 @@
-num_plantas = 3;
-num_dias = 3;
-num_clientes = 2;
+num_plantas=1;
+num_dias=2;
+num_clientes=2;
 
-coste_produccion = [800, 120, 50]; % Plantas: Nuclear, Hidroeléctrica, Térmica
-capacidad_maxima = array2d(1..3, 1..3, [
-  1000, 1000, 1000,
-  300,  250,  280,   
-  500,  480,  500    
-]);
+coste_produccion = [5]; 
+capacidad_maxima = [100]; 
+demanda_diaria = [|
+ 80, 10| 
+ 20, 90|
+|];
 
-demanda_diaria = array2d(1..2, 1..3, [
-  80, 110, 90,       
-  150, 98, 340       
-]);
+porcentaje_minimo = 50; 
+pago_por_mw = [12, 10]; 
 
-porcentaje_minimo = 50;
-pago_por_mw = [60, 65];
-
-porcentaje_regimen_alto = [90, 80, 85];
-max_dias_regimen_alto = [2, 2, 2];
+porcentaje_regimen_alto = [90]; 
+max_dias_regimen_alto = [1]; 
