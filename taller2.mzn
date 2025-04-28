@@ -91,20 +91,20 @@ var int: ganancia_neta =
   sum(p in 1..num_plantas, d in 1..num_dias)(produccion_diaria[p,d] * coste_produccion[p]);
 
   
-% Solo valores positivos
-constraint ganancia_neta >= 0;
-
-% solve :: seq_search([
-%   bool_search([cumple_demanda_total[c,d] | c in 1..num_clientes, d in 1..num_dias], input_order, indomain_max, complete),
-%   int_search([energia_entregada[c,d] | c in 1..num_clientes, d in 1..num_dias], first_fail, indomain_split, complete),
-%   int_search([produccion_diaria[p,d] | p in 1..num_plantas, d in 1..num_dias], first_fail, indomain_split, complete),
-% ]) maximize ganancia_neta;
+% Solo valores positivos (Descartado)
+% constraint ganancia_neta >= 0;
 
 solve :: seq_search([
   bool_search([cumple_demanda_total[c,d] | c in 1..num_clientes, d in 1..num_dias], input_order, indomain_max, complete),
   int_search([energia_entregada[c,d] | c in 1..num_clientes, d in 1..num_dias], first_fail, indomain_split, complete),
   int_search([produccion_diaria[p,d] | p in 1..num_plantas, d in 1..num_dias], first_fail, indomain_split, complete),
 ]) maximize ganancia_neta;
+
+% solve :: seq_search([
+%   bool_search([cumple_demanda_total[c,d] | c in 1..num_clientes, d in 1..num_dias], input_order, indomain_max, complete),
+%   int_search([energia_entregada[c,d] | c in 1..num_clientes, d in 1..num_dias], first_fail, indomain_split, complete),
+%   int_search([produccion_diaria[p,d] | p in 1..num_plantas, d in 1..num_dias], first_fail, indomain_split, complete),
+% ]) maximize ganancia_neta;
 
 % Con esta, llega más rápido a soluciones con entradas pequeñas
 % solve :: seq_search([
